@@ -23,17 +23,28 @@ jobs:
 
       - name: Build MTA Archive
         run: mbt build -p=cf # Builds the .mtar file for Cloud Foundry deployment
-        working-directory: ./ABAP-Envt.---Eclipse/ # Adjust if your mta.yaml is in a subfolder
+
+      - name: List files for debugging (Optional - remove once successful)
+        run: |
+          echo "Current working directory:"
+          pwd
+          echo "Contents of current directory:"
+          ls -R
+        # This debugging step will now run from the repository root as well.
 
       - name: Locate MTA Archive
         id: find_mtar # Store the path as an output
         run: |
-          MTAR_FILE=$(find . -name "*.mtar" | head -n 1) # Find the first .mtar file
+          # Since mbt build now runs from the repo root, `mta_archives` will be created
+          # directly in the repo root. So, the find command also runs from there.
+          MTAR_FILE=$(find mta_archives -name "*.mtar" | head -n 1)
           if [ -z "$MTAR_FILE" ]; then
-            echo "::error::No .mtar file found after build."
+            echo "::error::No .mtar file found in mta_archives folder."
             exit 1
           fi
-          echo "Found MTA archive: $MTAR_FILE"
+          # The path found (e.g., "mta_archives/project1_0.0.1.mtar") is already
+          # relative to the repository root, which is what CTMS_FILE_PATH expects.
+          echo "Found MTA archive at path: $MTAR_FILE"
           echo "mtar_path=$MTAR_FILE" >> $GITHUB_OUTPUT
 
       - name: Deploy to SAP BTP with CTMS (QA Environment)
@@ -48,7 +59,7 @@ jobs:
           CTMS_TR_DESCRIPTION: 'Automated deployment of BAS App to QA by ${{ github.actor }}'
           CTMS_TR_CONTENT_TYPE: 'MTA'
           CTMS_TR_STORAGE_TYPE: 'FILE'
-          CTMS_TR_USER_NAME: veeravenkatan_guggi@hcltech.com # Display GitHub user in CTMS UI
+          CTMS_TR_USER_NAME: yuvaraj-guggilla # Display GitHub user in CTMS UI
 
       # Optional: Add a manual approval step or a separate workflow for PROD deployment
       # You might have another job or workflow triggered manually or after QA passes.
