@@ -37,7 +37,7 @@ jobs:
           echo "mtar_path=$MTAR_FILE" >> $GITHUB_OUTPUT
 
       - name: Deploy to SAP BTP with CTMS (QA Environment)
-        uses: SAP-samples/deploy-to-sap-btp-with-ctms@v1 # Use the official action
+        uses: SAP-samples/deploy-to-sap-btp-with-ctms@main # Use the official action
         with:
           CTMS_TOKEN_SERVICE_URL: ${{ secrets.CTMS_TOKEN_SERVICE_URL }}
           CTMS_CLIENT_ID: ${{ secrets.CTMS_CLIENT_ID }}
