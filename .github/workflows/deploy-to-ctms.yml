@@ -23,7 +23,7 @@ jobs:
 
       - name: Build MTA Archive
         run: mbt build -p=cf # Builds the .mtar file for Cloud Foundry deployment
-        working-directory: ./ # Adjust if your mta.yaml is in a subfolder
+        working-directory: ./ABAP-Envt.---Eclipse/ # Adjust if your mta.yaml is in a subfolder
 
       - name: Locate MTA Archive
         id: find_mtar # Store the path as an output
