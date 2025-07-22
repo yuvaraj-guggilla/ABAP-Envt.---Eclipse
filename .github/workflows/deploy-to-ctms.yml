@@ -1,0 +1,69 @@
+name: CI/CD for BAS App to CTMS
+
+on:
+  push:
+    branches:
+      - main # or your development branch, e.g., 'develop'
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18' # Or your desired Node.js version
+
+      - name: Install Cloud MTA Build Tool (MBT)
+        run: npm install -g mbt
+
+      - name: Build MTA Archive
+        run: mbt build -p=cf # Builds the .mtar file for Cloud Foundry deployment
+        working-directory: ./ # Adjust if your mta.yaml is in a subfolder
+
+      - name: Locate MTA Archive
+        id: find_mtar # Store the path as an output
+        run: |
+          MTAR_FILE=$(find . -name "*.mtar" | head -n 1) # Find the first .mtar file
+          if [ -z "$MTAR_FILE" ]; then
+            echo "::error::No .mtar file found after build."
+            exit 1
+          fi
+          echo "Found MTA archive: $MTAR_FILE"
+          echo "mtar_path=$MTAR_FILE" >> $GITHUB_OUTPUT
+
+      - name: Deploy to SAP BTP with CTMS (QA Environment)
+        uses: SAP-samples/deploy-to-sap-btp-with-ctms@v1 # Use the official action
+        with:
+          CTMS_TOKEN_SERVICE_URL: ${{ secrets.CTMS_TOKEN_SERVICE_URL }}
+          CTMS_CLIENT_ID: ${{ secrets.CTMS_CLIENT_ID }}
+          CTMS_CLIENT_SECRET: ${{ secrets.CTMS_CLIENT_SECRET }}
+          CTMS_API_URL: ${{ secrets.CTMS_API_URL }}
+          CTMS_NODE_NAME: 'QA' # The name of your QA Transport Node in CTMS
+          CTMS_FILE_PATH: ${{ steps.find_mtar.outputs.mtar_path }}
+          CTMS_TR_DESCRIPTION: 'Automated deployment of BAS App to QA by ${{ github.actor }}'
+          CTMS_TR_CONTENT_TYPE: 'MTA'
+          CTMS_TR_STORAGE_TYPE: 'FILE'
+          CTMS_TR_USER_NAME: ${{ github.actor }} # Display GitHub user in CTMS UI
+
+      # Optional: Add a manual approval step or a separate workflow for PROD deployment
+      # You might have another job or workflow triggered manually or after QA passes.
+      # Example of a manual workflow dispatch:
+      # - name: Deploy to SAP BTP with CTMS (Production Environment)
+      #   if: github.ref == 'refs/heads/main' # Only deploy to prod from main branch
+      #   uses: SAP-samples/deploy-to-sap-btp-with-ctms@v1
+      #   with:
+      #     CTMS_TOKEN_SERVICE_URL: ${{ secrets.CTMS_TOKEN_SERVICE_URL }}
+      #     CTMS_CLIENT_ID: ${{ secrets.CTMS_CLIENT_ID }}
+      #     CTMS_CLIENT_SECRET: ${{ secrets.CTMS_CLIENT_SECRET }}
+      #     CTMS_API_URL: ${{ secrets.CTMS_API_URL }}
+      #     CTMS_NODE_NAME: 'PROD_BAS' # The name of your PROD Transport Node in CTMS
+      #     CTMS_FILE_PATH: ${{ steps.find_mtar.outputs.mtar_path }}
+      #     CTMS_TR_DESCRIPTION: 'Automated deployment of BAS App to PROD by ${{ github.actor }}'
+      #     CTMS_TR_CONTENT_TYPE: 'MTA'
+      #     CTMS_TR_STORAGE_TYPE: 'FILE'
+      #     CTMS_TR_USER_NAME: ${{ github.actor }}
