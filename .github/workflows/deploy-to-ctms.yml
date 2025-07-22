@@ -37,18 +37,18 @@ jobs:
           echo "mtar_path=$MTAR_FILE" >> $GITHUB_OUTPUT
 
       - name: Deploy to SAP BTP with CTMS (QA Environment)
-        uses: SAP-samples/deploy-to-sap-btp-with-ctms@main # Use the official action
+        uses: mauriciolauffer/deploy-to-sap-btp-with-ctms@main # Use the official action
         with:
-          CTMS_TOKEN_SERVICE_URL: ${{ secrets.CTMS_TOKEN_SERVICE_URL }}
-          CTMS_CLIENT_ID: ${{ secrets.CTMS_CLIENT_ID }}
-          CTMS_CLIENT_SECRET: ${{ secrets.CTMS_CLIENT_SECRET }}
-          CTMS_API_URL: ${{ secrets.CTMS_API_URL }}
+          CTMS_TOKEN_SERVICE_URL: CTMS_TOKEN_SERVICE_URL
+          CTMS_CLIENT_ID: CTMS_CLIENT_ID
+          CTMS_CLIENT_SECRET: CTMS_CLIENT_SECRET
+          CTMS_API_URL: CTMS_API_URL
           CTMS_NODE_NAME: 'QA' # The name of your QA Transport Node in CTMS
-          CTMS_FILE_PATH: ${{ steps.find_mtar.outputs.mtar_path }}
+          CTMS_FILE_PATH: mta_archives/project1_0.0.1.mtar
           CTMS_TR_DESCRIPTION: 'Automated deployment of BAS App to QA by ${{ github.actor }}'
           CTMS_TR_CONTENT_TYPE: 'MTA'
           CTMS_TR_STORAGE_TYPE: 'FILE'
-          CTMS_TR_USER_NAME: ${{ github.actor }} # Display GitHub user in CTMS UI
+          CTMS_TR_USER_NAME: veeravenkatan_guggi@hcltech.com # Display GitHub user in CTMS UI
 
       # Optional: Add a manual approval step or a separate workflow for PROD deployment
       # You might have another job or workflow triggered manually or after QA passes.
