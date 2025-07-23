@@ -24,10 +24,10 @@ jobs:
       - name: Install Cloud MTA Build Tool (MBT)
         run: npm install -g mbt
 
-      - name: Install Node.js dependencies for 'app1'
+      - name: Install Node.js dependencies for 'ABAP-Envt.---Eclipse'
         # Crucial for finding package.json
         run: npm ci
-        working-directory: ./ABAP-Envt.---Eclipse/ # <--- Run npm ci from the app1 folder
+        working-directory: ./ABAP-Envt.---Eclipse/ # <--- Run npm ci from the ABAP-Envt.---Eclipse folder
 
       - name: Build MTA Archive
         run: mbt build -p=cf
