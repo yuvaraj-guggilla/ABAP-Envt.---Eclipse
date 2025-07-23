@@ -1,26 +1,76 @@
-name: SAP BTP deployment with CTMS
+name: CI/CD for BAS App to CTMS
+
 on:
   push:
-    branches: main
+    branches:
+      - main # Or your development branch, e.g., 'develop'
+
 jobs:
-  publish:
+  build_and_deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-      - run: npm ci
-      - run: npm run build
-      - name: Deploy to SAP BTP DEV via CTMS
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        # This checks out your 'ABAP-Envt.---Eclipse' repository to:
+        # /home/runner/work/ABAP-Envt.---Eclipse/ABAP-Envt.---Eclipse/ (on the runner)
+        # Subsequent steps without 'working-directory' will run from this root.
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18' # Or your desired Node.js version
+
+      - name: Install Cloud MTA Build Tool (MBT)
+        run: npm install -g mbt
+
+      - name: Install Node.js dependencies for 'app1'
+        # Crucial for finding package.json
+        run: npm ci
+        working-directory: ./ABAP-Envt.---Eclipse/ # <--- Run npm ci from the app1 folder
+
+      - name: Build MTA Archive
+        run: mbt build -p=cf
+        # Your mta.yaml is at the repository root, not in a subfolder relative to the repo root.
+        # So, no 'working-directory' is needed here, as the default is the repo root.
+        # This fixes the previous "No such file or directory" error for the build step.
+
+      - name: List files after build (for debugging - remove after success)
+        # This will run from the repository root.
+        # Useful to confirm if mta_archives folder and .mtar file are created at the root.
+        run: |
+          echo "Current working directory:"
+          pwd
+          echo "Contents of current directory (after mbt build):"
+          ls -R
+
+      - name: Locate MTA Archive
+        id: find_mtar # Store the path as an output
+        run: |
+          # `mbt build` creates `mta_archives` directly in the directory where it's run.
+          # Since `mbt build` runs from the repo root, `mta_archives` will be at the repo root.
+          # The path found (e.g., "mta_archives/project1_0.0.1.mtar") is already
+          # relative to the repository root, which is what CTMS_FILE_PATH expects.
+          MTAR_FILE=$(find mta_archives -name "*.mtar" | head -n 1)
+          if [ -z "$MTAR_FILE" ]; then
+            echo "::error::No .mtar file found in mta_archives folder. MBT build might have failed or put it elsewhere."
+            exit 1
+          fi
+          echo "Found MTA archive at path: $MTAR_FILE"
+          echo "mtar_path=$MTAR_FILE" >> $GITHUB_OUTPUT
+
+      - name: Deploy to SAP BTP with CTMS (QA Environment)
+        # !!! FINAL CORRECTION TO ACTION REFERENCE (AGAIN) !!!
         uses: mauriciolauffer/deploy-to-sap-btp-with-ctms@main
-        with: # The following parameters are just examples, you should change them as needed
+        with:
           CTMS_TOKEN_SERVICE_URL: ${{ secrets.CTMS_TOKEN_SERVICE_URL }}
           CTMS_CLIENT_ID: ${{ secrets.CTMS_CLIENT_ID }}
           CTMS_CLIENT_SECRET: ${{ secrets.CTMS_CLIENT_SECRET }}
           CTMS_API_URL: ${{ secrets.CTMS_API_URL }}
-          CTMS_NODE_NAME: QA
-          CTMS_FILE_PATH: mta_archives/Project1_0.0.1.mtar
-          CTMS_TR_DESCRIPTION: Automated deployment from GitHub Actions
-          CTMS_TR_CONTENT_TYPE: MTA
-          CTMS_TR_STORAGE_TYPE: FILE
-          CTMS_TR_USER_NAME: ${{ secrets.CTMS_TR_USER_NAME }}
-
+          CTMS_NODE_NAME: 'QA' # Your CTMS QA Transport Node Name
+          # This now correctly references the .mtar path relative to the repo root
+          CTMS_FILE_PATH: ${{ steps.find_mtar.outputs.mtar_path }}
+          CTMS_TR_DESCRIPTION: 'Automated deployment of BAS App to QA by ${{ github.actor }}'
+          CTMS_TR_CONTENT_TYPE: 'MTA'
+          CTMS_TR_STORAGE_TYPE: 'FILE'
+          CTMS_TR_USER_NAME: ${{ github.actor }}
