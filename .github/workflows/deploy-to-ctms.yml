@@ -24,10 +24,10 @@ jobs:
       - name: Install Cloud MTA Build Tool (MBT)
         run: npm install -g mbt
 
-      - name: Install Node.js dependencies for 'ABAP-Envt.---Eclipse'
+      - name: Install Node.js dependencies for 'app1'
         # Crucial for finding package.json
         run: npm ci
-        working-directory: ./ABAP-Envt.---Eclipse/ # <--- Run npm ci from the ABAP-Envt.---Eclipse folder
+        working-directory: ./app1/ # <--- Run npm ci from the app1 folder
 
       - name: Build MTA Archive
         run: mbt build -p=cf
@@ -67,7 +67,7 @@ jobs:
           CTMS_CLIENT_ID: ${{ secrets.CTMS_CLIENT_ID }}
           CTMS_CLIENT_SECRET: ${{ secrets.CTMS_CLIENT_SECRET }}
           CTMS_API_URL: ${{ secrets.CTMS_API_URL }}
-          CTMS_NODE_NAME: 'QA' # Your CTMS QA Transport Node Name
+          CTMS_NODE_NAME: 'QA_BAS' # Your CTMS QA Transport Node Name
           # This now correctly references the .mtar path relative to the repo root
           CTMS_FILE_PATH: ${{ steps.find_mtar.outputs.mtar_path }}
           CTMS_TR_DESCRIPTION: 'Automated deployment of BAS App to QA by ${{ github.actor }}'
