@@ -69,7 +69,7 @@ jobs:
           CTMS_API_URL: ${{ secrets.CTMS_API_URL }}
           CTMS_NODE_NAME: 'QA' # Your CTMS QA Transport Node Name
           # This now correctly references the .mtar path relative to the repo root
-          CTMS_FILE_PATH: ${{ steps.find_mtar.outputs.mtar_path }}
+          CTMS_FILE_PATH: mta_archives/project1_0.0.1.mtar
           CTMS_TR_DESCRIPTION: 'Automated deployment of BAS App to QA by ${{ github.actor }}'
           CTMS_TR_CONTENT_TYPE: 'MTA'
           CTMS_TR_STORAGE_TYPE: 'FILE'
