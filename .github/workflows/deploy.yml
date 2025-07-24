@@ -32,7 +32,7 @@ jobs:
 
       - name: Install Cloud Foundry CLI MTA Plugin # <--- THIS IS THE CRITICAL STEP
         run: |
-          cf install-plugin -r CF-Community "Cloud Foundry CLI MTA Plugin" -f
+          cf install-plugin -r CF-Community mta -f
           # You can add a verification step here to ensure it's installed
           # cf plugins
       # --- CRITICAL MISSING STEP: Install Node.js dependencies for app1 ---
