@@ -23,13 +23,17 @@ jobs:
         run: npm install -g mbt
 
       - name: Install Cloud Foundry CLI
-        uses: sap/btp-setup-gh-action/setup-cf-cli@v1
+        run: | 
+         wget -q -O - https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.uk/debian/cli.cloudfoundry.org.uk.gpg | sudo apt-key add -
+         echo "deb https://packages.cloudfoundry.org/debian cli.cloudfoundry.org.uk stable main" | sudo tee /etc/apt/sources.list.d/cloudfoundry-cli.list
+          sudo apt-get update
+          sudo apt-get install cf-cli
 
       # --- CRITICAL MISSING STEP: Install Node.js dependencies for app1 ---
       # Your package.json is in app1/, so npm ci needs to run there.
-      - name: Install Node.js dependencies.
+      - name: Install Node.js dependencies 'app1'.
         run: npm ci
-        working-directory: ./ # <--- Add this crucial line!
+        working-directory: ./app1/ # <--- Add this crucial line!
 
       - name: Build MTA Archive
         run: mbt build -p=cf # Builds the .mtar file at the repository root
