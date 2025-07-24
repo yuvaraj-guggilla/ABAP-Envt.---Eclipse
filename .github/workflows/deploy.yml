@@ -25,13 +25,21 @@ jobs:
       - name: Build MTA Archive
         run: mbt build -p=cf # Builds the .mtar file
  
+# ... (previous steps: Checkout, Setup Node.js, Install MBT) ...
+
       - name: Install Cloud Foundry CLI
         run: |
-            curl -fsSL https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.uk/debian/cli.cloudfoundry.org.uk.gpg | sudo gpg --dearmor -o /etc/apt/keyrings/cloudfoundry-cli.gpg
-            echo "deb [signed-by=/etc/apt/keyrings/cloudfoundry-cli.gpg] https://packages.cloudfoundry.org/debian cli.cloudfoundry.org.uk stable main" | sudo tee /etc/apt/sources.list.d/cloudfoundry-cli.list > /dev/null
-            
-            sudo apt-get update
-            sudo apt-get install cf-cli -y 
+          # Add Cloud Foundry Foundation public key to package list
+          curl -fsSL https://packages.cloudfoundry.org/debian/cli/cloudfoundry-cli/debian/cli.cloudfoundry-cli-keyring.gpg | sudo gpg --dearmor -o /etc/apt/keyrings/cloudfoundry-cli-keyring.gpg
+          
+          # Add Cloud Foundry CLI to APT repositories
+          echo "deb [signed-by=/etc/apt/keyrings/cloudfoundry-cli-keyring.gpg] https://packages.cloudfoundry.org/debian stable main" | sudo tee /etc/apt/sources.list.d/cloudfoundry-cli.list
+          
+          # Update package list and install CF CLI
+          sudo apt update
+          sudo apt install cf8-cli
+
+      # ... (subsequent steps: Install npm dependencies, Build MTA, Locate MTA, Deploy to CTMS) ...
   # Ensure you are running this in a suitable environment (e.g., ubuntu-latest)
   # within your GitHub Actions workflow.
  
