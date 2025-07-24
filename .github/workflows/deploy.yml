@@ -38,32 +38,33 @@ jobs:
 
       # --- Deployment to Development Subaccount ---
       - name: Log in to Dev Subaccount
-        # We will use 'cf login --sso' or service key for production.
-        # For simplicity with direct credentials, env vars are fine for dev/test.
+        env:
+          CF_USERNAME: ${{ secrets.CF_USERNAME_DEV }}
+          CF_PASSWORD: ${{ secrets.CF_PASSWORD_DEV }}
         run: |
-          cf api ${{ secrets.CF_API_ENDPOINT_DEV }} # No --skip-ssl-validation unless strictly necessary
-          cf auth ${{ secrets.CF_USERNAME_DEV }} ${{ secrets.CF_PASSWORD_DEV }}
-        # The variables are directly accessible via secrets here, no need for `env:` block.
-
+          cf api ${{ secrets.CF_API_DEV }} --skip-ssl-validation
+          cf auth $CF_USERNAME_DEV $CF_PASSWORD_DEV
+ 
       - name: Target Dev Org and Space
         run: cf target -o ${{ secrets.CF_ORG_DEV }} -s ${{ secrets.CF_SPACE_DEV }}
-
+ 
       - name: Deploy to Dev Subaccount
-        # 'cf deploy' will look for mta.yaml or .mtar in the current directory.
-        # Since 'mbt build' created mta_archives/project1_0.0.1.mtar at the root,
-        # we can provide the full relative path from the repo root.
         run: cf deploy mta_archives/*.mtar -f # Assuming your .mtar is in mta_archives/
-
+ 
       # --- Deployment to QA Subaccount (Example) ---
-      # This part will repeat the login and deploy for QA.
-      # Ensure you have separate secrets for QA credentials and endpoint.
       - name: Log in to QA Subaccount
+        env:
+          CF_USERNAME: ${{ secrets.CF_USERNAME_DEV }}
+          CF_PASSWORD: ${{ secrets.CF_PASSWORD_DEV }}
         run: |
-          cf api ${{ secrets.CF_API_ENDPOINT_QA }} # No --skip-ssl-validation unless strictly necessary
-          cf auth ${{ secrets.CF_USERNAME_QA }} ${{ secrets.CF_PASSWORD_QA }}
-
+          cf api ${{ secrets.CF_API_QA }} --skip-ssl-validation
+          cf auth $CF_USERNAME_DEV $CF_PASSWORD_DEV
+ 
       - name: Target QA Org and Space
         run: cf target -o ${{ secrets.CF_ORG_QA }} -s ${{ secrets.CF_SPACE_QA }}
-
+ 
       - name: Deploy to QA Subaccount
         run: cf deploy mta_archives/*.mtar -f
+ 
+      # Add more deployment steps for other subaccounts (e.g., Production)
+      # You might want to use different triggers or manual approvals for production deployments.
