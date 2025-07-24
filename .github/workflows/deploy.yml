@@ -29,6 +29,12 @@ jobs:
            sudo apt update # Update package lists after adding the new repository
            sudo apt install cf8-cli # Install the specific cf8-cli package
 
+
+      - name: Install Cloud Foundry CLI MTA Plugin # <--- THIS IS THE CRITICAL STEP
+        run: |
+          cf install-plugin -r CF-Community "Cloud Foundry CLI MTA Plugin" -f
+          # You can add a verification step here to ensure it's installed
+          # cf plugins
       # --- CRITICAL MISSING STEP: Install Node.js dependencies for app1 ---
       # Your package.json is in app1/, so npm ci needs to run there.
       - name: Install Node.js dependencies 'app1'.
