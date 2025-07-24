@@ -31,25 +31,18 @@ jobs:
 
 # ... (previous steps: Checkout, Setup Node.js, Install MBT) ...
 
-      - name: Install Cloud Foundry CLI (Direct Download - Specific Version)
-        run: |
-          # Use a specific, known-good version for stability
-          CF_CLI_VERSION="8.9.0" # You can choose another stable 8.x.x version if needed
-          
-          # Direct download URL for cf8-linux-amd64.tgz from GitHub Releases
-          CF_CLI_DOWNLOAD_URL="https://github.com/cloudfoundry/cli/releases/download/v${CF_CLI_VERSION}/cf8-linux-amd64.tgz"
+# ... (previous steps: Checkout, Setup Node.js, Install MBT) ...
 
-          # Create a directory for the CLI
-          mkdir -p "$HOME/bin"
+      - name: Install Cloud Foundry CLI (using dedicated action)
+        uses: sap/btp-setup-gh-action/setup-cf-cli@v1 # Use the latest stable version if available, or @main
+          # You can specify a version if you need a particular one, e.g.:
+          # cf-cli-version: '8.9.0'
+          # If omitted, it will install a recent stable version.
+          
+          # No specific inputs are typically needed beyond an optional version,
+          # as it handles the download and PATH setup internally.
 
-          # Download and extract the CF CLI
-          curl -L "${CF_CLI_DOWNLOAD_URL}" | tar -xz -C "$HOME/bin"
-          
-          # Add the CF CLI to the PATH for the current session
-          echo "$HOME/bin" >> $GITHUB_PATH
-          
-          # Verify installation
-          cf version
+      # ... (subsequent steps: Install npm dependencies, Build MTA, Locate MTA, Deploy to CTMS) ...
 
       # ... (subsequent steps: Install npm dependencies, Build MTA, Locate MTA, Deploy to CTMS) ...
  
