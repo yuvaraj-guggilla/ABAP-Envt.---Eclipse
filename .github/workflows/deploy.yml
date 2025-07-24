@@ -1,77 +1,68 @@
 name: Deploy BAS App to BTP Subaccounts
- 
+
 on:
   push:
     branches:
       - main # Trigger on pushes to the main branch
   workflow_dispatch: # Allows manual triggering
- 
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest # Or a suitable runner
- 
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
- 
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18' # Or your project's required Node.js version
- 
+
       - name: Install Cloud MTA Build Tool (MBT)
         run: npm install -g mbt
- 
+
+      - name: Install Cloud Foundry CLI
+        uses: sap/btp-setup-gh-action/setup-cf-cli@v1
+
+      # --- CRITICAL MISSING STEP: Install Node.js dependencies for app1 ---
+      # Your package.json is in app1/, so npm ci needs to run there.
+      - name: Install Node.js dependencies for 'app1'
+        run: npm ci
+        working-directory: ./app1/ # <--- Add this crucial line!
+
       - name: Build MTA Archive
-        run: mbt build -p=cf # Builds the .mtar file
- 
-# ... (previous steps: Checkout, Setup Node.js, Install MBT) ...
+        run: mbt build -p=cf # Builds the .mtar file at the repository root
+        # No 'working-directory' needed here as mta.yaml is at the repo root.
 
-# ... (previous steps: Checkout, Setup Node.js, Install MBT) ...
-
-# ... (previous steps: Checkout, Setup Node.js, Install MBT) ...
-
-# ... (previous steps: Checkout, Setup Node.js, Install MBT) ...
-
-      - name: Install Cloud Foundry CLI (using dedicated action)
-        uses: sap/btp-setup-gh-action/setup-cf-cli@v1 # Use the latest stable version if available, or @main
-          # You can specify a version if you need a particular one, e.g.:
-          # cf-cli-version: '8.9.0'
-          # If omitted, it will install a recent stable version.
-          
-          # No specific inputs are typically needed beyond an optional version,
-          # as it handles the download and PATH setup internally.
-
-      # ... (subsequent steps: Install npm dependencies, Build MTA, Locate MTA, Deploy to CTMS) ...
-
-      # ... (subsequent steps: Install npm dependencies, Build MTA, Locate MTA, Deploy to CTMS) ...
- 
       # --- Deployment to Development Subaccount ---
       - name: Log in to Dev Subaccount
-        env:
-          CF_USERNAME: ${{ secrets.CF_USERNAME }}
-          CF_PASSWORD: ${{ secrets.CF_PASSWORD }}
+        # We will use 'cf login --sso' or service key for production.
+        # For simplicity with direct credentials, env vars are fine for dev/test.
         run: |
-          cf api ${{ secrets.CF_API_ENDPOINT }} --skip-ssl-validation
-          cf auth $CF_USERNAME $CF_PASSWORD
- 
+          cf api ${{ secrets.CF_API_ENDPOINT_DEV }} # No --skip-ssl-validation unless strictly necessary
+          cf auth ${{ secrets.CF_USERNAME_DEV }} ${{ secrets.CF_PASSWORD_DEV }}
+        # The variables are directly accessible via secrets here, no need for `env:` block.
+
       - name: Target Dev Org and Space
-        run: cf target -o ${{ secrets.CF_ORG }} -s ${{ secrets.CF_SPACE }}
- 
+        run: cf target -o ${{ secrets.CF_ORG_DEV }} -s ${{ secrets.CF_SPACE_DEV }}
+
       - name: Deploy to Dev Subaccount
+        # 'cf deploy' will look for mta.yaml or .mtar in the current directory.
+        # Since 'mbt build' created mta_archives/project1_0.0.1.mtar at the root,
+        # we can provide the full relative path from the repo root.
         run: cf deploy mta_archives/*.mtar -f # Assuming your .mtar is in mta_archives/
- 
+
       # --- Deployment to QA Subaccount (Example) ---
+      # This part will repeat the login and deploy for QA.
+      # Ensure you have separate secrets for QA credentials and endpoint.
       - name: Log in to QA Subaccount
-        env:
-          CF_USERNAME: ${{ secrets.CF_USERNAME_QA }}
-          CF_PASSWORD: ${{ secrets.CF_PASSWORD_QA }}
         run: |
-          cf api ${{ secrets.CF_API_QA }} --skip-ssl-validation
-          cf auth $CF_USERNAME_QA $CF_PASSWORD_QA
- 
+          cf api ${{ secrets.CF_API_ENDPOINT_QA }} # No --skip-ssl-validation unless strictly necessary
+          cf auth ${{ secrets.CF_USERNAME_QA }} ${{ secrets.CF_PASSWORD_QA }}
+
       - name: Target QA Org and Space
         run: cf target -o ${{ secrets.CF_ORG_QA }} -s ${{ secrets.CF_SPACE_QA }}
- 
+
       - name: Deploy to QA Subaccount
         run: cf deploy mta_archives/*.mtar -f
