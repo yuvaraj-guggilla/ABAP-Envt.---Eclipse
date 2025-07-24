@@ -29,16 +29,15 @@ jobs:
 
 # ... (previous steps: Checkout, Setup Node.js, Install MBT) ...
 
-      - name: Install Cloud Foundry CLI (Direct Download)
+# ... (previous steps: Checkout, Setup Node.js, Install MBT) ...
+
+      - name: Install Cloud Foundry CLI (Direct Download - Specific Version)
         run: |
-          # Define CF CLI version (you can specify a fixed one, e.g., '8.8.0')
-          # Using 'latest' is convenient but can break if new version has breaking changes.
-          CF_CLI_VERSION="latest" 
+          # Use a specific, known-good version for stability
+          CF_CLI_VERSION="8.9.0" # You can choose another stable 8.x.x version if needed
           
-          # Determine the appropriate download URL for Linux (ubuntu-latest)
-          # CF_CLI_DOWNLOAD_URL="https://cli.run.pivotal.io/stable?release=linux64-binary&version=${CF_CLI_VERSION}"
-          # The above is an older URL, let's use the one from GitHub releases which is more stable
-          CF_CLI_DOWNLOAD_URL="https://github.com/cloudfoundry/cli/releases/${CF_CLI_VERSION}/download/cf8-linux-amd64.tgz"
+          # Direct download URL for cf8-linux-amd64.tgz from GitHub Releases
+          CF_CLI_DOWNLOAD_URL="https://github.com/cloudfoundry/cli/releases/download/v${CF_CLI_VERSION}/cf8-linux-amd64.tgz"
 
           # Create a directory for the CLI
           mkdir -p "$HOME/bin"
@@ -53,10 +52,6 @@ jobs:
           cf version
 
       # ... (subsequent steps: Install npm dependencies, Build MTA, Locate MTA, Deploy to CTMS) ...
-
-      # ... (subsequent steps: Install npm dependencies, Build MTA, Locate MTA, Deploy to CTMS) ...
-  # Ensure you are running this in a suitable environment (e.g., ubuntu-latest)
-  # within your GitHub Actions workflow.
  
       # --- Deployment to Development Subaccount ---
       - name: Log in to Dev Subaccount
