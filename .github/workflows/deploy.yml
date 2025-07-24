@@ -1,0 +1,66 @@
+name: Deploy BAS App to BTP Subaccounts
+ 
+on:
+  push:
+    branches:
+      - main # Trigger on pushes to the main branch
+  workflow_dispatch: # Allows manual triggering
+ 
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest # Or a suitable runner
+ 
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+ 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18' # Or your project's required Node.js version
+ 
+      - name: Install Cloud MTA Build Tool (MBT)
+        run: npm install -g mbt
+ 
+      - name: Build MTA Archive
+        run: mbt build -p=cf # Builds the .mtar file
+ 
+      - name: Install Cloud Foundry CLI
+        run: |
+            curl -fsSL https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.uk/debian/cli.cloudfoundry.org.uk.gpg | sudo gpg --dearmor -o /etc/apt/keyrings/cloudfoundry-cli.gpg
+            echo "deb [signed-by=/etc/apt/keyrings/cloudfoundry-cli.gpg] https://packages.cloudfoundry.org/debian cli.cloudfoundry.org.uk stable main" | sudo tee /etc/apt/sources.list.d/cloudfoundry-cli.list > /dev/null
+            
+            sudo apt-get update
+            sudo apt-get install cf-cli -y 
+  # Ensure you are running this in a suitable environment (e.g., ubuntu-latest)
+  # within your GitHub Actions workflow.
+ 
+      # --- Deployment to Development Subaccount ---
+      - name: Log in to Dev Subaccount
+        env:
+          CF_USERNAME: ${{ secrets.CF_USERNAME }}
+          CF_PASSWORD: ${{ secrets.CF_PASSWORD }}
+        run: |
+          cf api ${{ secrets.CF_API_ENDPOINT }} --skip-ssl-validation
+          cf auth $CF_USERNAME $CF_PASSWORD
+ 
+      - name: Target Dev Org and Space
+        run: cf target -o ${{ secrets.CF_ORG }} -s ${{ secrets.CF_SPACE }}
+ 
+      - name: Deploy to Dev Subaccount
+        run: cf deploy mta_archives/*.mtar -f # Assuming your .mtar is in mta_archives/
+ 
+      # --- Deployment to QA Subaccount (Example) ---
+      - name: Log in to QA Subaccount
+        env:
+          CF_USERNAME: ${{ secrets.CF_USERNAME_QA }}
+          CF_PASSWORD: ${{ secrets.CF_PASSWORD_QA }}
+        run: |
+          cf api ${{ secrets.CF_API_QA }} --skip-ssl-validation
+          cf auth $CF_USERNAME_QA $CF_PASSWORD_QA
+ 
+      - name: Target QA Org and Space
+        run: cf target -o ${{ secrets.CF_ORG_QA }} -s ${{ secrets.CF_SPACE_QA }}
+ 
+      - name: Deploy to QA Subaccount
+        run: cf deploy mta_archives/*.mtar -f
