@@ -1,6 +1,6 @@
 {
   "name": "abap-envt.---eclipse",
->>>>>>> b856c9b (package in github directory)
+  
   "version": "1.0.0",
   "description": "Repository for the ABAP Envt. with Eclipse code cloud",
   "main": "index.js",
