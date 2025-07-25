@@ -1,3 +1,17 @@
 _schema-version: "3.2"
 ID: Project1
 version: 0.0.1
+description: "My Cloud Foundry Application"
+
+modules:
+  - name: app1-backend # A meaningful name for your Node.js app module
+    type: nodejs        # Indicate it's a Node.js app
+    path: app1          # This points to the 'app1' directory relative to THIS mta.yaml
+    parameters:
+      buildpack: nodejs_buildpack # Ensure correct buildpack
+      memory: 256M # Adjust as needed
+      disk-quota: 512M # Adjust as needed
+    # Add 'requires' if app1 needs any services (e.g., HANA, XSUAA)
+    # requires:
+    #   - name: my-db-service
+    #   - name: my-xsuaa-service
