@@ -45,11 +45,11 @@ jobs:
         run: cf install-plugin -r CF-Community multiapps -f
      
       # ... (rest of your workflow for building and deploying)
-      # --- CRITICAL MISSING STEP: Install Node.js dependencies for app1 ---
-      # Your package.json is in app1/, so npm ci needs to run there.
-      - name: Install Node.js dependencies 'app1'.
+      # --- CRITICAL MISSING STEP: Install Node.js dependencies ---
+      # Your package.json, so npm ci needs to run there.
+      - name: Install Node.js dependencies.
         run: npm ci
-        working-directory: ./app1/ # <--- Add this crucial line!
+        working-directory: ./ # <--- Add this crucial line!
 
       - name: Build MTA Archive
         run: mbt build -p=cf # Builds the .mtar file at the repository root
