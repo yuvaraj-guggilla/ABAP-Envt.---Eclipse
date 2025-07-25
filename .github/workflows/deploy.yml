@@ -73,11 +73,11 @@ jobs:
       # --- Deployment to QA Subaccount (Example) ---
       - name: Log in to QA Subaccount
         env:
-          CF_USERNAME: ${{ secrets.CF_USERNAME_DEV }}
-          CF_PASSWORD: ${{ secrets.CF_PASSWORD_DEV }}
+          CF_USERNAME: ${{ secrets.CF_USERNAME_QA }}
+          CF_PASSWORD: ${{ secrets.CF_PASSWORD_QA }}
         run: |
           cf api ${{ secrets.CF_API_QA }} --skip-ssl-validation
-          cf auth $CF_USERNAME_DEV $CF_PASSWORD_DEV
+          cf auth $CF_USERNAME_QA $CF_PASSWORD_QA
  
       - name: Target QA Org and Space
         run: cf target -o ${{ secrets.CF_ORG_QA }} -s ${{ secrets.CF_SPACE_QA }}
