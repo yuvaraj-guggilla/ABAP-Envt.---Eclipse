@@ -26,18 +26,9 @@ jobs:
         run: |
            wget -q -O - https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | sudo gpg --dearmor -o /usr/share/keyrings/cli.cloudfoundry.org.gpg
            echo "deb [signed-by=/usr/share/keyrings/cli.cloudfoundry.org.gpg] https://packages.cloudfoundry.org/debian stable main" | sudo tee /etc/apt/sources.list.d/cloudfoundry-cli.list
-           sudo apt update # Update package lists after adding the new repository
-           sudo apt install cf8-cli # Install the specific cf8-cli package
-
-
-# ... (previous steps like Node.js setup, MBT install, CF CLI install)
-
-      - name: Install Cloud Foundry CLI
-        run: |
-           wget -q -O - https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | sudo gpg --dearmor -o /usr/share/keyrings/cli.cloudfoundry.org.gpg
-           echo "deb [signed-by=/usr/share/keyrings/cli.cloudfoundry.org.gpg] https://packages.cloudfoundry.org/debian stable main" | sudo tee /etc/apt/sources.list.d/cloudfoundry-cli.list
            sudo apt update
            sudo apt install cf8-cli
+
 
       # --- CRITICAL DEBUGGING STEP ---
       - name: List Plugins in CF-Community Repository to find MTA plugin name
