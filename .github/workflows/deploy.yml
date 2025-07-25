@@ -30,11 +30,32 @@ jobs:
            sudo apt install cf8-cli # Install the specific cf8-cli package
 
 
-      - name: Install Cloud Foundry CLI MTA Plugin # <--- THIS IS THE CRITICAL STEP
+# ... (previous steps like Node.js setup, MBT install, CF CLI install)
+
+      - name: Install Cloud Foundry CLI
         run: |
-          cf install-plugin -r CF-Community
-          # You can add a verification step here to ensure it's installed
-          # cf plugins
+           wget -q -O - https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | sudo gpg --dearmor -o /usr/share/keyrings/cli.cloudfoundry.org.gpg
+           echo "deb [signed-by=/usr/share/keyrings/cli.cloudfoundry.org.gpg] https://packages.cloudfoundry.org/debian stable main" | sudo tee /etc/apt/sources.list.d/cloudfoundry-cli.list
+           sudo apt update
+           sudo apt install cf8-cli
+
+      # --- CRITICAL DEBUGGING STEP ---
+      - name: List Plugins in CF-Community Repository to find MTA plugin name
+        run: cf repo-plugins -r CF-Community
+        # This step is designed to FAIL the workflow if 'cf' isn't found,
+        # but its primary purpose is to print the list of plugins to the logs.
+        # You will look at the output of this step.
+      # --- END CRITICAL DEBUGGING STEP ---
+
+      # This step will likely still fail initially, but we need the output from the above.
+      - name: Install Cloud Foundry CLI MTA Plugin (placeholder, will update after debug)
+        # You can keep 'mta' here, or comment this step out for now if you prefer,
+        # but ensure the 'List Plugins' step runs.
+        run: cf install-plugin -r CF-Community mta -f
+        continue-on-error: true # Add this for now so the workflow doesn't stop immediately if this fails
+                                # and you can still see the output of the 'List Plugins' step.
+
+      # ... (rest of your workflow for building and deploying)
       # --- CRITICAL MISSING STEP: Install Node.js dependencies for app1 ---
       # Your package.json is in app1/, so npm ci needs to run there.
       - name: Install Node.js dependencies 'app1'.
