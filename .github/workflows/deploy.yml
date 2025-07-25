@@ -42,10 +42,8 @@ jobs:
       - name: Install Cloud Foundry CLI MTA Plugin (placeholder, will update after debug)
         # You can keep 'mta' here, or comment this step out for now if you prefer,
         # but ensure the 'List Plugins' step runs.
-        run: cf install-plugin -r CF-Community mta -f
-        continue-on-error: true # Add this for now so the workflow doesn't stop immediately if this fails
-                                # and you can still see the output of the 'List Plugins' step.
-
+        run: cf install-plugin -r CF-Community multiapps -f
+     
       # ... (rest of your workflow for building and deploying)
       # --- CRITICAL MISSING STEP: Install Node.js dependencies for app1 ---
       # Your package.json is in app1/, so npm ci needs to run there.
